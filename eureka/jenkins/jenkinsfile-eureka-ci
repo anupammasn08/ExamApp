@@ -71,10 +71,10 @@ sh """
                 }
             }
         }
-        stage('Maven Compile') {
+        stage('Maven Package') {
             steps{
                 dir('eureka'){
-                    sh 'mvn compile'
+                    sh 'mvn package'
                 }
             }
  
