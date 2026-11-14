@@ -1,0 +1,60 @@
+- name: Install packages on Ubuntu AMI
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Update apt
+      apt: update_cache=yes
+
+    - name: Fix broken dependencies
+      command: apt-get --fix-broken install -y
+
+    - name: Install basic packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - curl
+        - wget
+        - unzip
+        - net-tools
+
+    - name: Force update and install jq
+      become: true
+      apt:
+        name: jq
+        state: present
+        update_cache: yes
+        force_apt_get: yes
+
+    - name: Install MySQL client
+      shell: sudo apt-get install -y mysql-client
+      args:
+        warn: no
+      ignore_errors: yes
+
+    - name: Install OpenJDK 17 JDK
+      apt:
+        name: openjdk-17-jdk
+        state: present
+      register: java_install
+
+    - name: Verify Java installation
+      command: java -version
+      register: java_version
+      changed_when: false
+
+    - name: Display Java version
+      debug:
+        msg: "{{ java_version.stderr }}"
+
+
+    - name: Install AWS CLI v2
+      shell: |
+        cd /tmp
+        curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip -q awscliv2.zip
+        sudo ./aws/install
+        rm -rf aws awscliv2.zip
+      args:
+        creates: /usr/local/bin/aws
