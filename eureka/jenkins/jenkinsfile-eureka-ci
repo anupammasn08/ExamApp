@@ -47,7 +47,6 @@ pipeline {
     //             """
     //         }
     //     }
-    // }
 
     post {
         success {
@@ -57,3 +56,4 @@ pipeline {
             echo 'AMI build failed. Check logs above.'
         }
     }
+}
