@@ -71,6 +71,14 @@ sh """
                 }
             }
         }
+        stage('Maven Compile') {
+            steps{
+                dir('eureka'){
+                    sh 'mvn compile'
+                }
+            }
+ 
+        }
     }    
 
     //     stage('Build AMI') {
