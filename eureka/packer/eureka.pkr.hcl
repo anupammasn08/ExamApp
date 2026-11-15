@@ -61,7 +61,7 @@ provisioner "ansible" {
   ansible_env_vars = [
     "SERVICE_NAME=${var.service_name}",
     "SERVICE_VERSION=${var.service_version}",
-    "NEXUS_URL=${vars.nexus_url}",
+    "NEXUS_URL=${var.nexus_url}",
     "EUREKA_PORT=${var.eureka_port}"
 
 
