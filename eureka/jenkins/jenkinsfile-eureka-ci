@@ -58,15 +58,15 @@ pipeline {
             steps {
                 dir('eureka') {
                     withSonarQubeEnv('sonar') {
-sh """
-    mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-        -Dsonar.projectKey=com.ksapp:eureka \
-        -Dsonar.projectName="Eureka_Service_Registry_v${env.SERVICE_VERSION}" \
-        -Dsonar.projectVersion=${env.SERVICE_VERSION} \
-        -Dsonar.sources=src/main/java \
-        -Dsonar.java.binaries=target/classes
-        
-"""
+        sh """
+            mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                -Dsonar.projectKey=com.ksapp:eureka \
+                -Dsonar.projectName="Eureka_Service_Registry_v${env.SERVICE_VERSION}" \
+                -Dsonar.projectVersion=${env.SERVICE_VERSION} \
+                -Dsonar.sources=src/main/java \
+                -Dsonar.java.binaries=target/classes
+                
+        """
                    }
                 }
             }
@@ -79,6 +79,26 @@ sh """
             }
  
         }
+        stage('Deploy to Nexus') {
+        steps {
+            dir('eureka') {
+                script {
+                    def jarFile = "target/eureka-${env.SERVICE_VERSION}.jar"
+
+                    def nexusPath = "${env.NEXUS_URL}/com/ksapp/eureka/${env.SERVICE_VERSION}/eureka-${env.SERVICE_VERSION}.jar"
+
+                    withCredentials([usernamePassword(credentialsId: 'nexus-creds',
+                                                    usernameVariable: 'NEXUS_USER',
+                                                    passwordVariable: 'NEXUS_PASS')]) {
+                        sh """
+                            curl -f -u ${NEXUS_USER}:${NEXUS_PASS} --upload-file ${jarFile} ${nexusPath}
+                        """
+                                                    }
+                    }  
+                }
+            }
+        }
+        
     }    
 
     //     stage('Build AMI') {
