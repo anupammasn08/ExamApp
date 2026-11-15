@@ -88,7 +88,7 @@ pipeline {
                     def nexusPath = "${env.NEXUS_URL}/com/ksapp/eureka/${env.SERVICE_VERSION}/eureka-${env.SERVICE_VERSION}.jar"
 
                         sh """
-                            curl -f -u ${NEXUS_USER}:${NEXUS_PASS} --upload-file ${jarFile} ${nexusPath}
+                            curl -v -u ${env.NEXUS_CREDS} --upload-file ${jarFile} ${nexusPath}
                         """
                                                     }
                     }  
