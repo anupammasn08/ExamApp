@@ -3,8 +3,9 @@
   become: yes
 
   tasks:
-    - name: Update apt
-      apt: update_cache=yes
+    - name: Update apt cache
+      apt: 
+        update_cache: yes
 
     - name: Fix broken dependencies
       command: apt-get --fix-broken install -y
