@@ -123,10 +123,10 @@
         group: "{{ app_user }}"
         mode: '0644'
         timeout: 120
-      retries: 3s
+      retries: 3          # <-- Change from '3s' to '3'
       delay: 10
       register: download_result
-      until: download_result is success
+      until: download_result is success                        
 
     - name: Create systemd service file
       copy:
