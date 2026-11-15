@@ -57,7 +57,7 @@ build {
 provisioner "ansible" {
   playbook_file = "./ansible/playbook-eureka.yml"
   user          = "ubuntu"
-  use_proxy = false
+  user_proxy = false
   ansible_env_vars = [
     "SERVICE_NAME=${var.service_name}",
     "SERVICE_VERSION=${var.service_version}",
