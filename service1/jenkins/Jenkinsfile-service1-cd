@@ -45,7 +45,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/kartikeyasoft/ExamApp.git', branch: 'main'
+                git url: 'https://github.com/anupammasn08/ExamApp.git', branch: 'main'
             }
         }
 

@@ -4,14 +4,17 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven-3.8'
-        jdk 'JDK-17'
+        maven 'maven-3.10.1'
+        jdk 'jdk-21.0.13'
     }
 
     environment {
-        PATH = "/usr/bin:${env.PATH}"        
+        PATH = "/usr/bin:${env.PATH}"  
+
         NEXUS_CREDS = credentials('nexus-credentials')
-        AWS_CONFIG_FILE = '/var/lib/jenkins/.aws/config'
+        AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')      
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+        
         DB_USERNAME = credentials('db-username')
         DB_PASSWORD = credentials('db-password')
     }
@@ -55,7 +58,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/kartikeyasoft/ExamApp.git', branch: 'main'
+                git url: 'https://github.com/anupammasn08/ExamApp.git', branch: 'main'
             }
         }
 
