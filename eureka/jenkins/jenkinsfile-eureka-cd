@@ -220,24 +220,23 @@ stages {
         }
     }
 
-        post {
-        success {
-            script {
-                echo "✅ Eureka ${params.ACTION} completed successfully!"
-                if (params.ACTION == 'apply') {
-                    echo "🎯 Other services can now discover Eureka at: /exam/eureka/ip and /exam/eureka/port"
-                }
-            }
+post {
+success {
+    script {
+        echo "✅ Eureka ${params.ACTION} completed successfully!"
+        if (params.ACTION == 'apply') {
+            echo "🎯 Other services can now discover Eureka at: /exam/eureka/ip and /exam/eureka/port"
         }
-        failure {
-            echo "❌ Eureka ${params.ACTION} failed!"
-            script {
-                echo "Check the logs above for detailed error information"
-                }
-            }
-        }
-    
-
     }
+}
+failure {
+    echo "❌ Eureka ${params.ACTION} failed!"
+    script {
+        echo "Check the logs above for detailed error information"
+            }
+        }
+    }
+    
+}
 }
 
