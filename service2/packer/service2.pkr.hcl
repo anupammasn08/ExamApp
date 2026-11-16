@@ -64,11 +64,12 @@ variable "eureka_port" {
 variable "source_ami" {
   description = "Base AMI ID to use for the build"
   type        = string
+  default = "ami-0547ecbf0e9b4aeb5
 }
 
 source "amazon-ebs" "service2" {
   ami_name        = "myapp-${var.service_name}-v${var.service_version}"
-  instance_type   = "t3.micro"
+  instance_type   = "t3.small"
   region          = "us-east-1"
   source_ami      = var.source_ami
   ssh_username    = "ubuntu"
