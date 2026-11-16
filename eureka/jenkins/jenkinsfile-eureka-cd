@@ -13,30 +13,29 @@ environment {
 }
 
 stages {
+    stage('Load Configuration') {
+        steps {
+            script {
+                // Load configuration from shared library
+                def config = envConfig()
 
-stage('Load Configuration') {
-    steps {
-        script {
-            // Load configuration from shared library
-            def config = envConfig()
+                // Set environment variables from config
+                env.AWS_DEFAULT_REGION = config.aws.region
+                env.EUREKA_PORT = config.eureka.defaultPort
+                env.NEXUS_URL = config.nexus.url
+                
 
-            // Set environment variables from config
-            env.AWS_DEFAULT_REGION = config.aws.region
-            env.EUREKA_PORT = config.eureka.defaultPort
-            env.NEXUS_URL = config.nexus.url
-            
-
-            echo "========================================"
-            echo "Eureka CD Pipeline"
-            echo "========================================"
-            echo "Action: ${params.ACTION}"
-            echo "AWS Region: ${env.AWS_DEFAULT_REGION}"
-            echo "Eureka Port: ${env.EUREKA_PORT}"
-            echo "Nexus URL: ${env.NEXUS_URL}"
-            echo "========================================"
+                echo "========================================"
+                echo "Eureka CD Pipeline"
+                echo "========================================"
+                echo "Action: ${params.ACTION}"
+                echo "AWS Region: ${env.AWS_DEFAULT_REGION}"
+                echo "Eureka Port: ${env.EUREKA_PORT}"
+                echo "Nexus URL: ${env.NEXUS_URL}"
+                echo "========================================"
+                }
             }
         }
-    }
 
     stage('Checkout') {
         steps {
