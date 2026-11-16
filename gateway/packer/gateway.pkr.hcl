@@ -28,7 +28,7 @@ variable "service_port" {
 # AWS Region
 variable "aws_region" {
   type    = string
-  default = "ap-south-1"
+  default = "us-east-1"
 }
 
 variable "nexus_url" {
@@ -43,7 +43,7 @@ variable "source_ami" {
 
 source "amazon-ebs" "gateway" {
   ami_name        = "myapp-${var.service_name}-v${var.service_version}"
-  instance_type   = "t3.micro"
+  instance_type   = "t3.small"
   region          = var.aws_region
   source_ami      = var.source_ami
   ssh_username    = "ubuntu"
