@@ -199,13 +199,43 @@ stage('Load Configuration') {
                 } catch (Exception e) {
                     public_ip = "Unknown (output not found)"
                     }
+
+                    echo "=================================================="
+                    echo "✅ Eureka Deployed Successfully!"
+                    echo "=================================================="
+                    echo "AMI ID: ${env.AMI_ID}"
+                    echo "Public IP: ${public_ip}"
+                    echo "Private IP: ${private_ip}"
+                    echo "Eureka Port: ${env.EUREKA_PORT}"
+                    echo "Dashboard: http://${public_ip}:${env.EUREKA_PORT}"
+                    echo "Service URL: http://${private_ip}:${env.EUREKA_PORT}/eureka/"
+                    echo "=================================================="
+
+                    // Also store AWS CLI commands for debugging
+                    echo "To check Eureka registration from other services:"
+                    echo "aws ssm get-parameter --name /exam/eureka/ip --query Parameter.Value --output text"
                 }
             }
         }
     }
 
-
-
+    post {
+    success {
+        script {
+            echo "✅ Eureka ${params.ACTION} completed successfully!"
+            if (params.ACTION == 'apply') {
+                echo "🎯 Other services can now discover Eureka at: /exam/eureka/ip and /exam/eureka/port"
+            }
+        }
+    }
+    failure {
+        echo "❌ Eureka ${params.ACTION} failed!"
+        script {
+            echo "Check the logs above for detailed error information"
+            }
+        }
+    }
+    
 
 }
 
