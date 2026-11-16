@@ -38,7 +38,7 @@ variable "vpc_id" {
 variable "key_name" {
   description = "SSH key pair name"
   type        = string
-  default     = "kskey"
+  default     = "ubuntu"
 }
 
 # Service-specific variables
