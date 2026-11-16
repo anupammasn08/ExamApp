@@ -90,7 +90,7 @@ pipeline {
                 dir('service1') {
                     withSonarQubeEnv('sonar') {
                         sh """
-                            mvn sonar:sonar \
+                            mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
                                 -Dsonar.projectKey=com.ksapp:service1 \
                                 -Dsonar.projectName="Service1_v${env.SERVICE_VERSION}" \
                                 -Dsonar.projectVersion=${env.SERVICE_VERSION} \
