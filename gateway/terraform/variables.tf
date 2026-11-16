@@ -45,19 +45,19 @@ variable "service_port" {
 variable "subnet_id" {
   description = "Subnet ID for the instance"
   type        = string
-  default     = "subnet-0aa31e769c8f4d73e"
+  default     = "subnet-0e1d9929e836cf794"
 }
 
 variable "vpc_id" {
   description = "VPC ID for security group"
   type        = string
-  default     = "vpc-0cb7deb47a6bfa727"
+  default     = "vpc-08cb1a36caa5308c7"
 }
 
 variable "key_name" {
   description = "SSH key pair name"
   type        = string
-  default     = "ksansible"
+  default     = "ubuntu"
 }
 
 variable "environment" {
@@ -69,7 +69,7 @@ variable "environment" {
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
-  default     = "t3.micro"
+  default     = "t3.small"
 }
 
 # Service-specific variables
