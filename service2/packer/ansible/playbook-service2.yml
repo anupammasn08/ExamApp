@@ -1,0 +1,209 @@
+---
+- name: Provision Service2 golden image
+  hosts: all
+  become: yes
+  vars:
+    app_user: "service2"
+    app_name: "service2"
+    app_version: "{{ lookup('env', 'SERVICE_VERSION') }}"
+    nexus_url: "{{ lookup('env', 'NEXUS_URL') }}"
+    service_port: "{{ lookup('env', 'SERVICE_PORT') | default('9002') }}"
+    db_host: "{{ lookup('env', 'DB_HOST') }}"
+    db_port: "{{ lookup('env', 'DB_PORT') | default('3306') }}"
+    db_name: "{{ lookup('env', 'DB_NAME') }}"
+    db_username: "{{ lookup('env', 'DB_USERNAME') }}"
+    db_password: "{{ lookup('env', 'DB_PASSWORD') }}"
+    eureka_port: "{{ lookup('env', 'EUREKA_PORT') | default('8761') }}"
+
+  tasks:
+    - name: Fix APT repository issues
+      block:
+        - name: Clean APT cache
+          command: apt-get clean
+          become: yes
+
+        - name: Remove corrupt lists
+          file:
+            path: /var/lib/apt/lists
+            state: absent
+          become: yes
+
+        - name: Recreate lists directory
+          file:
+            path: /var/lib/apt/lists
+            state: directory
+            mode: '0755'
+          become: yes
+
+        - name: Update with fix-missing
+          command: apt-get update --fix-missing
+          become: yes
+
+    - name: Fix broken dependencies
+      command: apt-get --fix-broken install -y
+      become: yes
+
+    - name: Enable universe repository
+      apt_repository:
+        repo: "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} universe"
+        state: present
+      become: yes
+
+    - name: Update apt again
+      apt:
+        update_cache: yes
+        force_apt_get: yes
+      become: yes
+
+    - name: Install all packages together
+      apt:
+        name:
+          - curl
+          - wget
+          - unzip
+          - net-tools
+          - jq
+          - mysql-client
+          - openjdk-17-jdk
+        state: present
+        force_apt_get: yes
+        install_recommends: no
+      become: yes
+      register: install_result
+      until: install_result is success
+      retries: 3
+      delay: 10
+
+    - name: Verify Java installation
+      command: java -version
+      register: java_version
+      changed_when: false
+      become: yes
+
+    - name: Display Java version
+      debug:
+        msg: "{{ java_version.stderr_lines[0] }}"
+
+    - name: Install AWS CLI v2
+      block:
+        - name: Download AWS CLI
+          get_url:
+            url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+            dest: /tmp/awscliv2.zip
+          become: yes
+
+        - name: Extract AWS CLI
+          unarchive:
+            src: /tmp/awscliv2.zip
+            dest: /tmp
+            remote_src: yes
+          become: yes
+
+        - name: Install AWS CLI
+          command: /tmp/aws/install
+          become: yes
+          args:
+            creates: /usr/local/bin/aws
+
+        - name: Clean up
+          file:
+            path: "{{ item }}"
+            state: absent
+          loop:
+            - /tmp/awscliv2.zip
+            - /tmp/aws
+          become: yes
+    - name: Create service2 user
+      user:
+        name: "{{ app_user }}"
+        system: yes
+        home: "/opt/{{ app_name }}"
+        create_home: yes
+
+    - name: Create application directory
+      file:
+        path: "/opt/{{ app_name }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0755"
+
+    - name: Create application.properties
+      copy:
+        content: |
+          server.port=\${SERVER_PORT:{{ service_port }}}
+          spring.application.name=\${SPRING_APP_NAME:{{ app_name }}}
+          
+          spring.datasource.url=\${DB_URL}
+          spring.datasource.username=\${DB_USER}
+          spring.datasource.password=\${DB_PASSWORD}
+          spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+          
+          spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+          spring.jpa.hibernate.ddl-auto=update
+          spring.jpa.show-sql=true
+          spring.jpa.properties.hibernate.format_sql=true
+          
+          eureka.client.service-url.defaultZone=\${EUREKA_URL}
+          eureka.instance.prefer-ip-address=true
+          
+          management.endpoints.web.exposure.include=health,info
+          management.endpoint.health.show-details=always
+          
+          logging.level.com.codingworld.service2=INFO
+        dest: "/opt/{{ app_name }}/application.properties"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0644"
+
+    - name: Create environment file
+      copy:
+        content: |
+          EUREKA_URL=http://localhost:{{ eureka_port }}/eureka/
+          SERVER_PORT={{ service_port }}
+          SPRING_APP_NAME={{ app_name }}
+          DB_URL=jdbc:mysql://{{ db_host }}:{{ db_port }}/{{ db_name }}?useSSL=false&serverTimezone=UTC
+          DB_USER={{ db_username }}
+          DB_PASSWORD={{ db_password }}
+        dest: "/opt/{{ app_name }}/{{ app_name }}.env"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0600"
+
+    - name: Download JAR from Nexus
+      get_url:
+        url: "{{ nexus_url }}/com/ksapp/{{ app_name }}/{{ app_version }}/{{ app_name }}-{{ app_version }}.jar"
+        dest: "/opt/{{ app_name }}/{{ app_name }}.jar"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0644"
+        timeout: 120
+
+    - name: Create systemd service
+      copy:
+        content: |
+          [Unit]
+          Description={{ app_name }} Service
+          After=network.target
+          
+          [Service]
+          User={{ app_user }}
+          WorkingDirectory=/opt/{{ app_name }}
+          EnvironmentFile=/opt/{{ app_name }}/{{ app_name }}.env
+          ExecStart=/usr/bin/java -jar /opt/{{ app_name }}/{{ app_name }}.jar
+          Restart=always
+          RestartSec=10
+          
+          [Install]
+          WantedBy=multi-user.target
+        dest: "/etc/systemd/system/{{ app_name }}.service"
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and start service
+      systemd:
+        name: "{{ app_name }}"
+        enabled: yes
+        state: started
