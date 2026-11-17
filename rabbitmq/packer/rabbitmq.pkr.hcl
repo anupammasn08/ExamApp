@@ -46,7 +46,7 @@ variable "source_ami" {
 
 source "amazon-ebs" "rabbitmq" {
   ami_name        = "myapp-${var.service_name}-v${var.service_version}"
-  instance_type   = "t3.micro"
+  instance_type   = "t3.small"
   region          = "us-east-1"
   source_ami      = var.source_ami
   ssh_username    = "ubuntu"
